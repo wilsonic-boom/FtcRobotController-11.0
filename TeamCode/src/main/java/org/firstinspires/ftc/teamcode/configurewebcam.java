@@ -63,7 +63,7 @@ import java.util.Locale;
 public class configurewebcam extends LinearOpMode
 {
     /*
-     * EDIT THESE PARAMETERS AS NEEDED
+     * EDIT THESE PARAMETERS AS NEEDED ale
      */
     final boolean USING_WEBCAM = true   ;
     final BuiltinCameraDirection INTERNAL_CAM_DIR = BuiltinCameraDirection.BACK;

@@ -18,6 +18,7 @@ public class autonomous extends LinearOpMode {
     private DcMotorEx motorBL = null;
     private DcMotorEx motorBR = null;
     private DcMotorEx motorST = null;
+    private Thread Shoot = null;
     //    private IMU imu;
 
     // MATH Setup
@@ -223,10 +224,22 @@ public class autonomous extends LinearOpMode {
             telemetry.addData("Motors", "rpm (%.2f)", motorFL.getVelocity());
             telemetry.addData("Motors", "rpm (%.2f)", motorBR.getVelocity());
             telemetry.addData("Motors", "rpm (%.2f)", motorBL.getVelocity());
+
+            if (Shoot != null) {
+                if (!Shoot.isAlive()) {
+                    Shoot = null;
+                    telemetry.addData("Travelling to shooting area", false);
+                } else {
+                    telemetry.addData("Travelling to shooting area", true);
+                }
+            }
             telemetry.update();
 
             if (gamepad1.leftBumperWasReleased()) {
-                goShootingArea();
+                Shoot = new Thread(() -> {
+                    goShootingArea();
+                });
+                Shoot.start();
             }
         }
     }

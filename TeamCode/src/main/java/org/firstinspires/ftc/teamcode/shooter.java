@@ -7,8 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterTrigger;
+//import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+//import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 @TeleOp(name="Basic: Linear OpMode", group="Linear OpMode")
 public class shooter extends LinearOpMode {

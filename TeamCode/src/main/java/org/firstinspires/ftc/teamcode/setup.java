@@ -5,14 +5,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 @TeleOp(name="Motor Speed Test (Manual Distance)", group="Testing")
-public class setup extends LinearOpMode {
+public class MotorSpeedTestSimple extends LinearOpMode {
 
     private DcMotorEx motorFL, motorFR, motorBL, motorBR;
 
     double[] speeds = {0.25, 0.50, 0.75, 1.0};
     int speedIndex = 0;
 
-    long intervalMs = 100; // start at 100ms
+    long intervalMs = 100;
 
     @Override
     public void runOpMode() {
@@ -24,29 +24,48 @@ public class setup extends LinearOpMode {
 
         DcMotorEx[] motors = {motorFL, motorFR, motorBL, motorBR};
 
+        // Initialize motors
         for (DcMotorEx m : motors) {
             m.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
             m.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
             m.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         }
 
-        telemetry.addLine("Ready for Motor Speed Test");
+        telemetry.addLine("READY — Motor Speed Test");
         telemetry.addLine("Dpad Left/Right = change speed");
         telemetry.addLine("Dpad Up/Down = change duration (100ms steps)");
-        telemetry.addLine("Press A to run test");
+        telemetry.addLine("A = run test");
         telemetry.update();
 
         waitForStart();
 
+        // Button edge detection variables
+        boolean lastLeft = false, lastRight = false;
+        boolean lastUp = false, lastDown = false;
+        boolean lastA = false;
+
         while (opModeIsActive()) {
 
-            // adjust speed
-            if (gamepad1.dpad_left)  { speedIndex = Math.max(0, speedIndex - 1); sleep(200); }
-            if (gamepad1.dpad_right) { speedIndex = Math.min(speeds.length - 1, speedIndex + 1); sleep(200); }
+            // ====== BUTTON EDGE DETECTION ======
+            boolean left = gamepad1.dpad_left;
+            boolean right = gamepad1.dpad_right;
+            boolean up = gamepad1.dpad_up;
+            boolean down = gamepad1.dpad_down;
+            boolean aPressed = gamepad1.a;
 
-            // adjust time
-            if (gamepad1.dpad_up)   { intervalMs += 100; sleep(200); }
-            if (gamepad1.dpad_down) { intervalMs = Math.max(100, intervalMs - 100); sleep(200); }
+            // Speed up/down (only on button press, not hold)
+            if (left && !lastLeft) speedIndex = Math.max(0, speedIndex - 1);
+            if (right && !lastRight) speedIndex = Math.min(speeds.length - 1, speedIndex + 1);
+
+            // Duration up/down
+            if (up && !lastUp) intervalMs += 100;
+            if (down && !lastDown) intervalMs = Math.max(100, intervalMs - 100);
+
+            // Save new "last" states
+            lastLeft = left;
+            lastRight = right;
+            lastUp = up;
+            lastDown = down;
 
             double power = speeds[speedIndex];
 
@@ -55,27 +74,33 @@ public class setup extends LinearOpMode {
             telemetry.addLine("Press A to run");
             telemetry.update();
 
-            // Run the test
-            if (gamepad1.a) {
+            // ====== RUN TEST ======
+            if (aPressed && !lastA) {
 
-                // reset encoders
+                // Reset encoders
                 for (DcMotorEx m : motors) {
                     m.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
                     m.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
                 }
 
-                // start motors (all forward)
-                for (DcMotorEx m : motors) m.setPower(power);
-
-                long startTime = System.currentTimeMillis();
-                while (opModeIsActive() && System.currentTimeMillis() - startTime < intervalMs) {
-                    // wait
+                // Start motors
+                for (DcMotorEx m : motors) {
+                    m.setPower(power);
                 }
 
-                // stop motors
-                for (DcMotorEx m : motors) m.setPower(0);
+                long testStart = System.currentTimeMillis();
 
-                // read encoder values
+                // Safer wait loop that still lets the OpMode stop gracefully
+                while (opModeIsActive() && System.currentTimeMillis() - testStart < intervalMs) {
+                    idle();
+                }
+
+                // Stop motors
+                for (DcMotorEx m : motors) {
+                    m.setPower(0);
+                }
+
+                // Collect encoder values
                 int fl = motorFL.getCurrentPosition();
                 int fr = motorFR.getCurrentPosition();
                 int bl = motorBL.getCurrentPosition();
@@ -91,8 +116,10 @@ public class setup extends LinearOpMode {
                 telemetry.addLine("Measure distance with ruler now.");
                 telemetry.update();
 
-                sleep(1500);
+                sleep(1200);
             }
+
+            lastA = aPressed;
         }
     }
 }

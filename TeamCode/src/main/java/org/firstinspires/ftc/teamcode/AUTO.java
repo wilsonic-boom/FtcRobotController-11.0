@@ -288,9 +288,18 @@ public class autonomous extends LinearOpMode {
             telemetry.update();
 
             if (gamepad1.leftBumperWasPressed()) {
-                Shoot = new Thread(this::goShootingArea);
+                Shoot = new Thread(this::autoShoot);
                 Shoot.start();
             }
+            if (gamepad1.xWasPressed()) {
+                Shoot.interrupt();
+                motorFL.setPower(0);
+                motorFR.setPower(0);
+                motorBL.setPower(0);
+                motorBR.setPower(0);
+                sleep(test);
+            }
+
 
             if (gamepad1.aWasPressed()) {
                 motorFL.setPower(1);
